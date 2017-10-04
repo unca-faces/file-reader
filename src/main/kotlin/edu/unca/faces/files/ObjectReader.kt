@@ -28,15 +28,19 @@ class ObjectReader constructor (file: File) {
     }
 
     init {
-        for (field in fields) {
-            if (field.type.isPrimitive) {
-                when (field.type) {
-                    Int::class.java -> field.set(obj, ByteUtil.readInt(input))
-                    Float::class.java -> field.set(obj, ByteUtil.readFloat(input))
-                    Short::class.java -> field.set(obj, ByteUtil.readShort(input))
+        fields
+                .filter { it.type.isPrimitive }
+                .forEach {
+                    when (it.type) {
+                        Int::class.java -> it.set(obj, ByteUtil.readInt(input))
+                        Float::class.java -> it.set(obj, ByteUtil.readFloat(input))
+                        Short::class.java -> it.set(obj, ByteUtil.readShort(input))
+                        Double::class.java -> it.set(obj, ByteUtil.readDouble(input))
+                        Long::class.java -> it.set(obj, ByteUtil.readLong(input))
+                        Byte::class.java -> it.set(obj, ByteUtil.readByte(input))
+                        Char::class.java -> it.set(obj, ByteUtil.readChar(input))
+                    }
                 }
-            }
-        }
     }
 
     companion object {

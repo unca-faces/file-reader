@@ -31,6 +31,18 @@ object ByteUtil {
     @JvmStatic
     fun readShort(chan: ReadableByteChannel): Short = readNum(chan, ByteBuffer.allocate(2)).short
 
+    @JvmStatic
+    fun readDouble(chan: ReadableByteChannel): Double = readNum(chan, ByteBuffer.allocate(8)).double
+
+    @JvmStatic
+    fun readLong(chan: ReadableByteChannel): Long = readNum(chan, ByteBuffer.allocate(8)).long
+
+    @JvmStatic
+    fun readByte(chan: ReadableByteChannel): Byte = readNum(chan, ByteBuffer.allocate(1)).get()
+
+    @JvmStatic
+    fun readChar(chan: ReadableByteChannel): Char = readNum(chan, ByteBuffer.allocate(1)).char
+
     private fun readNum(chan: ReadableByteChannel, buff: ByteBuffer): ByteBuffer {
         buff.order(ByteOrder.LITTLE_ENDIAN)
         chan.read(buff)
