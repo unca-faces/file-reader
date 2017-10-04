@@ -8,7 +8,7 @@ import java.lang.reflect.Modifier
 internal object ReflectionUtil {
 
     @JvmStatic
-    fun getIndexOrderedFields(clazz: Class<out ReadableType>): List<Field> {
+    fun getIndexOrderedFields(clazz: Class<*>): List<Field> {
         val fieldList = mutableListOf<Field>()
         for (field in clazz.declaredFields) {
             if (field.modifiers != Modifier.STATIC

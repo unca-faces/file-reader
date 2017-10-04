@@ -11,7 +11,8 @@ class FileReaderMain {
                 println("Must specify file to read")
                 exitProcess(1)
             }
-            val reader = ObjectReader(File(args[0]))
+
+            val reader = ObjectReader.readFileToObject(File(args[0]))
         }
     }
 }

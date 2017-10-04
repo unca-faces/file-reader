@@ -1,9 +1,12 @@
 package edu.unca.faces.files.util
 
+import java.nio.BufferOverflowException
 import java.nio.ByteBuffer
 import java.nio.channels.ReadableByteChannel
 
 class StaticByteChannel(val bytes: ByteArray) : ReadableByteChannel {
+
+    var pos = 0;
 
     override fun isOpen() = true
 
@@ -12,9 +15,11 @@ class StaticByteChannel(val bytes: ByteArray) : ReadableByteChannel {
 
     override fun read(dst: ByteBuffer): Int {
         var i = 0
-        for (byte in bytes) {
-            dst.put(byte)
+        while (dst.hasRemaining()) {
+            if (pos >= bytes.size) throw BufferOverflowException()
+            dst.put(bytes[pos])
             i++
+            pos++
         }
         return i
     }
