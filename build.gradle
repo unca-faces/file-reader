@@ -20,6 +20,13 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+
+    testCompile group: 'junit', name: 'junit', version:'4.12'
+    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version:'1.6.1'
+    testCompile group: 'org.powermock', name: 'powermock-api-easymock', version:'1.6.1'
+    testCompile group: 'org.powermock', name: 'powermock-api-mockito', version:'1.6.1'
+    testCompile group: 'org.easymock', name: 'easymock', version:'3.4'
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 }
 
 compileKotlin {

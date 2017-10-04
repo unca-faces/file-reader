@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 
 public class TriFile extends ReadableType {
 
-    TriFile(Character[] magicNumber) {
+    TriFile(char[] magicNumber) {
         super(magicNumber);
     }
 
