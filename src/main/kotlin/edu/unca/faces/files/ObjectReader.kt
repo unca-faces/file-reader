@@ -40,15 +40,15 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
     init {
         for (field in fields) {
             field.isAccessible = true
-            if (field.type.isPrimitive) {
-                handlePrimitiveField(field)
-            } else if (field.type.isArray) {
+            if (field.type.isArray) {
                 handleArray(field)
+            } else {
+                handleNonArray(field)
             }
         }
     }
 
-    private fun handlePrimitiveField(field: Field) {
+    private fun handleNonArray(field: Field) {
         field.set(obj, extractValue(field.type, field))
     }
 
