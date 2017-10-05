@@ -1,6 +1,5 @@
 package edu.unca.faces.files.util
 
-import sun.security.jgss.GSSToken.readInt
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.ReadableByteChannel

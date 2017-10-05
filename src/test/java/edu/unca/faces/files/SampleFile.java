@@ -1,11 +1,9 @@
 package edu.unca.faces.files;
 
-import edu.unca.faces.files.annotations.ArraySize;
-import edu.unca.faces.files.annotations.BoundSize;
-import edu.unca.faces.files.annotations.Index;
-import edu.unca.faces.files.annotations.NullTerminated;
+import edu.unca.faces.files.annotations.*;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 public class SampleFile {
 
@@ -23,7 +21,30 @@ public class SampleFile {
             0x02, 0x00, // shorts x2
             0x02, 0x00, 0x00, 0x00, // X x2
             0x04, 0x00, 0x06, 0x00, // xShorts x2
+            0x41, // passedCondChars
     };
+
+    static char[] failedCondCharsExpected = null;
+    @Index(8) @BoundSize("V") @Conditions(FailingCondition.class) char[] failedCondChars;
+
+    @ConditionalField("V")
+    static class FailingCondition implements Predicate<Integer> {
+        @Override
+        public boolean test(Integer V) {
+            return V >= 4;
+        }
+    }
+
+    static char[] passedCondCharsExpected = {'A'};
+    @Index(9) @BoundSize("K") char[] passedCondChars;
+
+    @ConditionalField("K")
+    static class PassingCondition implements Predicate<Integer> {
+        @Override
+        public boolean test(Integer K) {
+            return K == 1;
+        }
+    }
 
     static char[] idExpected = "ABCDEFGH".toCharArray();
     @Index(0) @ArraySize(8) char[] id;

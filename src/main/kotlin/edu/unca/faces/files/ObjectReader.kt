@@ -1,8 +1,6 @@
 package edu.unca.faces.files
 
-import edu.unca.faces.files.annotations.ArraySize
-import edu.unca.faces.files.annotations.BoundSize
-import edu.unca.faces.files.annotations.NullTerminated
+import edu.unca.faces.files.annotations.*
 import edu.unca.faces.files.types.KnownType
 import edu.unca.faces.files.util.ArrayUtil
 import edu.unca.faces.files.util.ByteUtil
@@ -15,6 +13,8 @@ import java.lang.reflect.Field
 import java.nio.channels.FileChannel
 import java.nio.channels.ReadableByteChannel
 import java.nio.file.StandardOpenOption
+import java.util.*
+import java.util.function.Predicate
 
 class ObjectReader internal constructor (private val input: ReadableByteChannel,
                                         objectProvider: (ReadableByteChannel) -> Any,
@@ -42,12 +42,36 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
         for (field in fields) {
             println(field)
             field.isAccessible = true
-            if (field.type.isArray) {
-                handleArray(field)
-            } else {
-                handleNonArray(field)
+            if (field.meetsConditions()) {
+                if (field.type.isArray) {
+                    handleArray(field)
+                } else {
+                    handleNonArray(field)
+                }
             }
         }
+    }
+
+    private fun Field.meetsConditions(): Boolean {
+        val conditions = this.getAnnotation(Conditions::class.java)
+        if (conditions != null) {
+            for (c in conditions.value) {
+                val conditionalFieldName = c.java.getAnnotation(ConditionalField::class.java)?.value
+                        ?: throw AnnotationFormatError("Condition class $c must be annotated with a ConditionalField")
+                val conditionalValue = getIntegerField(conditionalFieldName, this)
+
+                val constructor = try {
+                    c.java.getDeclaredConstructor()
+                } catch (e: NoSuchMethodException) {
+                    throw IllegalArgumentException("Condition classes must have no arg constructor", e)
+                }
+                constructor.isAccessible = true
+
+                val predicate = constructor.newInstance() as Predicate<Int>
+                if (!predicate.test(conditionalValue)) return false
+            }
+        }
+        return true
     }
 
     private fun handleNonArray(field: Field) {
@@ -79,6 +103,22 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
         }
     }
 
+    private fun getIntegerField(name: String, field: Field): Int {
+        val intField = integerFields[name] ?: throw AnnotationFormatError("There is no field "
+                + "$name to bind which is required by $field")
+        // The int field may belong to a parent object so we must find the parent that has it
+        var o: Any = obj
+        var nextParent: ObjectReader? = parentReader
+        while (nextParent != null) {
+            if (nextParent.obj::class.java.hasDeclaredField(name)) {
+                o = nextParent.obj
+                break
+            }
+            nextParent = nextParent.parentReader
+        }
+        return (intField.get(o) as Number).toInt()
+    }
+
     private fun handleArray(field: Field) {
         val arraySizeAnnotation: ArraySize? = field.getAnnotation(ArraySize::class.java)
         val arraySize = arraySizeAnnotation?.value ?: -1
@@ -87,19 +127,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
         val boundSize: Int = if (boundSizeAnnotation != null) {
             var size = 0
             for (boundFieldName in boundSizeAnnotation.value) {
-                val intField = integerFields[boundFieldName] ?: throw AnnotationFormatError("There is no field "
-                        + "$boundFieldName to bind the size of ${field.name} to")
-                // The int field may belong to a parent object so we must find the parent that has it
-                var o: Any = obj
-                var nextParent: ObjectReader? = parentReader
-                while (nextParent != null) {
-                    if (nextParent.obj::class.java.hasDeclaredField(boundFieldName)) {
-                        o = nextParent.obj
-                        break
-                    }
-                    nextParent = nextParent.parentReader
-                }
-                size += (intField.get(o) as Number).toInt()
+                size += getIntegerField(boundFieldName, field)
             }
             size
         } else {

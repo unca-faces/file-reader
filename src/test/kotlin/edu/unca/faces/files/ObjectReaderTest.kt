@@ -13,10 +13,12 @@ class ObjectReaderTest {
         assertEquals(SampleFile.KExpected, obj.K)
         assertEquals(SampleFile.VExpected, obj.V)
         assertEquals(String(SampleFile.idExpected), String(obj.id))
-        assertTrue(SampleFile.sArray1Expected.contentEquals(obj.sArray1))
-        assertTrue(SampleFile.sArray2Expected.contentEquals(obj.sArray2))
+        assertArrayEquals(SampleFile.sArray1Expected, obj.sArray1)
+        assertArrayEquals(SampleFile.sArray2Expected, obj.sArray2)
         assertEquals(SampleFile.sNullTermExpected, obj.sNullTerm)
-        assertTrue(SampleFile.floats2dExpected.contentDeepEquals(obj.floats2d))
-        assertEquals(SampleFile.childrenExpected, obj.children)
+        assertArrayEquals(SampleFile.floats2dExpected, obj.floats2d)
+        assertArrayEquals(SampleFile.childrenExpected, obj.children)
+        assertArrayEquals(SampleFile.failedCondCharsExpected, obj.failedCondChars)
+        assertArrayEquals(SampleFile.passedCondCharsExpected, obj.passedCondChars)
     }
 }
