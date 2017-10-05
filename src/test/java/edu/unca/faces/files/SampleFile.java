@@ -36,7 +36,7 @@ public class SampleFile {
     }
 
     static char[] passedCondCharsExpected = {'A'};
-    @Index(9) @BoundSize("K") char[] passedCondChars;
+    @Index(9) @BoundSize("K") @Conditions(PassingCondition.class) char[] passedCondChars;
 
     @ConditionalField("K")
     static class PassingCondition implements Predicate<Integer> {
