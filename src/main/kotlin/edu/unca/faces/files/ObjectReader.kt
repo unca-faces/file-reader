@@ -7,6 +7,7 @@ import edu.unca.faces.files.types.KnownType
 import edu.unca.faces.files.util.ArrayUtil
 import edu.unca.faces.files.util.ByteUtil
 import edu.unca.faces.files.util.ReflectionUtil
+import edu.unca.faces.files.util.hasDeclaredField
 import java.io.File
 import java.io.IOException
 import java.lang.annotation.AnnotationFormatError
@@ -18,7 +19,7 @@ import java.nio.file.StandardOpenOption
 class ObjectReader internal constructor (private val input: ReadableByteChannel,
                                         objectProvider: (ReadableByteChannel) -> Any,
                                         private val integerFields: MutableMap<String, Field> = mutableMapOf(),
-                                        private val parentObj: Any? = null) {
+                                        private val parentReader: ObjectReader? = null) {
 
     private constructor(file: File) : this(FileChannel.open(file.toPath(), StandardOpenOption.READ),
             {input -> KnownType.getType(ByteUtil.readString(input, 8))?.createReadableType()
@@ -39,6 +40,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
 
     init {
         for (field in fields) {
+            println(field)
             field.isAccessible = true
             if (field.type.isArray) {
                 handleArray(field)
@@ -73,7 +75,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
             } catch (e: Exception) {
                 throw IllegalArgumentException("The type ${type.name} is not supported in field ${field.name}")
             }
-            ObjectReader(input, { o }, integerFields, obj)
+            ObjectReader(input, { o }, integerFields, this).obj
         }
     }
 
@@ -87,7 +89,17 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
             for (boundFieldName in boundSizeAnnotation.value) {
                 val intField = integerFields[boundFieldName] ?: throw AnnotationFormatError("There is no field "
                         + "$boundFieldName to bind the size of ${field.name} to")
-                size += (intField.get(obj) as Number).toInt()
+                // The int field may belong to a parent object so we must find the parent that has it
+                var o: Any = obj
+                var nextParent: ObjectReader? = parentReader
+                while (nextParent != null) {
+                    if (nextParent.obj::class.java.hasDeclaredField(boundFieldName)) {
+                        o = nextParent.obj
+                        break
+                    }
+                    nextParent = nextParent.parentReader
+                }
+                size += (intField.get(o) as Number).toInt()
             }
             size
         } else {
@@ -197,8 +209,9 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                 else -> {
                     val array = ArrayUtil.createTypedArray(arrayType, boundSize, arraySize)
                     for (i in 0 until if (boundSize >= 0) boundSize else arraySize) {
-                        array[i] = extractValue(String::class.java, field)
+                        array[i] = extractValue(arrayType, field)
                     }
+                    println(array)
                     field.set(obj, array)
                 }
             }

@@ -17,10 +17,12 @@ class StaticByteChannel(val bytes: ByteArray) : ReadableByteChannel {
         var i = 0
         while (dst.hasRemaining()) {
             if (pos >= bytes.size) throw BufferOverflowException()
+            print(javax.xml.bind.DatatypeConverter.printHexBinary(byteArrayOf(bytes[pos])))
             dst.put(bytes[pos])
             i++
             pos++
         }
+        println()
         return i
     }
 }

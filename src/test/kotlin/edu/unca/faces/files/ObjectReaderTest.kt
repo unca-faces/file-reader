@@ -16,5 +16,7 @@ class ObjectReaderTest {
         assertTrue(SampleFile.sArray1Expected.contentEquals(obj.sArray1))
         assertTrue(SampleFile.sArray2Expected.contentEquals(obj.sArray2))
         assertEquals(SampleFile.sNullTermExpected, obj.sNullTerm)
+        assertTrue(SampleFile.floats2dExpected.contentDeepEquals(obj.floats2d))
+        assertEquals(SampleFile.childrenExpected, obj.children)
     }
 }

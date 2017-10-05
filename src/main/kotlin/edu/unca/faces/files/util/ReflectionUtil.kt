@@ -1,9 +1,18 @@
 package edu.unca.faces.files.util
 
-import edu.unca.faces.files.ReadableType
 import edu.unca.faces.files.annotations.Index
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+
+fun Class<*>.hasDeclaredField(name: String): Boolean {
+    val fields = this.getDeclaredFields()
+    for (field in fields) {
+        if (field.name == name) {
+            return true
+        }
+    }
+    return false
+}
 
 internal object ReflectionUtil {
 
