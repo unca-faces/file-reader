@@ -2,10 +2,7 @@ package edu.unca.faces.files
 
 import edu.unca.faces.files.annotations.*
 import edu.unca.faces.files.types.KnownType
-import edu.unca.faces.files.util.ArrayUtil
-import edu.unca.faces.files.util.ByteUtil
-import edu.unca.faces.files.util.ReflectionUtil
-import edu.unca.faces.files.util.hasDeclaredField
+import edu.unca.faces.files.util.*
 import java.io.File
 import java.io.IOException
 import java.lang.annotation.AnnotationFormatError
@@ -13,7 +10,6 @@ import java.lang.reflect.Field
 import java.nio.channels.FileChannel
 import java.nio.channels.ReadableByteChannel
 import java.nio.file.StandardOpenOption
-import java.util.*
 import java.util.function.Predicate
 
 class ObjectReader internal constructor (private val input: ReadableByteChannel,
@@ -42,7 +38,8 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
         for (field in fields) {
             println(field)
             field.isAccessible = true
-            if (field.meetsConditions()) {
+            //if (field.meetsConditions({c, f -> getIntegerField(c, f)})) {
+            if (field.meetsConditions(this::getIntegerField)) {
                 if (field.type.isArray) {
                     handleArray(field)
                 } else {
@@ -52,27 +49,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
         }
     }
 
-    private fun Field.meetsConditions(): Boolean {
-        val conditions = this.getAnnotation(Conditions::class.java)
-        if (conditions != null) {
-            for (c in conditions.value) {
-                val conditionalFieldName = c.java.getAnnotation(ConditionalField::class.java)?.value
-                        ?: throw AnnotationFormatError("Condition class $c must be annotated with a ConditionalField")
-                val conditionalValue = getIntegerField(conditionalFieldName, this)
 
-                val constructor = try {
-                    c.java.getDeclaredConstructor()
-                } catch (e: NoSuchMethodException) {
-                    throw IllegalArgumentException("Condition classes must have no arg constructor", e)
-                }
-                constructor.isAccessible = true
-
-                val predicate = constructor.newInstance() as Predicate<Int>
-                if (!predicate.test(conditionalValue)) return false
-            }
-        }
-        return true
-    }
 
     private fun handleNonArray(field: Field) {
         field.set(obj, extractValue(field.type, field))

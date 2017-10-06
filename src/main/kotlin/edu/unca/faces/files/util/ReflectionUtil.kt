@@ -1,8 +1,35 @@
 package edu.unca.faces.files.util
 
+import edu.unca.faces.files.ObjectReader
+import edu.unca.faces.files.annotations.ConditionalField
+import edu.unca.faces.files.annotations.Conditions
 import edu.unca.faces.files.annotations.Index
+import java.lang.annotation.AnnotationFormatError
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.util.function.Predicate
+
+internal fun Field.meetsConditions(intFieldGetter: (String, Field) -> Int): Boolean {
+    val conditions = this.getAnnotation(Conditions::class.java)
+    if (conditions != null) {
+        for (c in conditions.value) {
+            val conditionalFieldName = c.java.getAnnotation(ConditionalField::class.java)?.value
+                    ?: throw AnnotationFormatError("Condition class $c must be annotated with a ConditionalField")
+            val conditionalValue = intFieldGetter(conditionalFieldName, this)
+
+            val constructor = try {
+                c.java.getDeclaredConstructor()
+            } catch (e: NoSuchMethodException) {
+                throw IllegalArgumentException("Condition classes must have no arg constructor", e)
+            }
+            constructor.isAccessible = true
+
+            val predicate = constructor.newInstance() as Predicate<Int>
+            if (!predicate.test(conditionalValue)) return false
+        }
+    }
+    return true
+}
 
 fun Class<*>.hasDeclaredField(name: String): Boolean {
     val fields = this.getDeclaredFields()
