@@ -98,7 +98,12 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
                 }
             }
             else -> {
-
+                val o = try {
+                    type.newInstance()
+                } catch (e: Exception) {
+                    throw IllegalArgumentException("The type ${type.name} is not supported in field ${field.name}")
+                }
+                ObjectWriter(output, { o }, integerFields, this).writeObject()
             }
         }
     }
