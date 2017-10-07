@@ -64,4 +64,20 @@ class ByteUtilTest {
         ByteUtil.writeChar(chan, 'A')
         assertArrayEquals(bytes, chan.bytes)
     }
+
+    @Test
+    fun testWriteString() {
+        val bytes = byteArrayOf(0x04, 0x00, 0x00, 0x00, 0x41, 0x42, 0x43, 0x44)
+        val chan = TestingByteChannel(ByteArray(8))
+        ByteUtil.writeString(chan, "ABCD")
+        assertArrayEquals(bytes, chan.bytes)
+    }
+
+    @Test
+    fun testWriteNullTerminatedString() {
+        val bytes = byteArrayOf(0x41, 0x42, 0x43, 0x44, 0x00)
+        val chan = TestingByteChannel(ByteArray(5))
+        ByteUtil.writeNullTerminatedString(chan, "ABCD")
+        assertArrayEquals(bytes, chan.bytes)
+    }
 }

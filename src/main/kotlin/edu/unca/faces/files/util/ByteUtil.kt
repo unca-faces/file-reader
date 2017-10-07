@@ -82,6 +82,29 @@ object ByteUtil {
     }
 
     @JvmStatic
+    fun writeString(chan: WritableByteChannel, value: String) {
+        val length = value.length
+        writeInt(chan, length)
+        val buff = ByteBuffer.allocate(length)
+        for (c in value.toCharArray()) {
+            writeCharToBuffer(buff, c)
+        }
+        buff.position(0)
+        chan.write(buff)
+    }
+
+    @JvmStatic
+    fun writeNullTerminatedString(chan: WritableByteChannel, value: String) {
+        val buff = ByteBuffer.allocate(value.length + 1)
+        for (c in value.toCharArray()) {
+            writeCharToBuffer(buff, c)
+        }
+        writeCharToBuffer(buff, '\u0000')
+        buff.position(0)
+        chan.write(buff)
+    }
+
+    @JvmStatic
     fun writeInt(chan: WritableByteChannel, value: Int) {
         val buff = ByteBuffer.allocate(4)
         buff.order(ByteOrder.LITTLE_ENDIAN)
@@ -136,9 +159,13 @@ object ByteUtil {
     @JvmStatic
     fun writeChar(chan: WritableByteChannel, value: Char) {
         val buff = ByteBuffer.allocate(1)
-        val asByte = (0xFF and value.toInt()).toByte()
-        buff.put(asByte)
+        writeCharToBuffer(buff, value)
         buff.flip()
         chan.write(buff)
+    }
+
+    private fun writeCharToBuffer(buff: ByteBuffer, value: Char) {
+        val asByte = (0xFF and value.toInt()).toByte()
+        buff.put(asByte)
     }
 }
