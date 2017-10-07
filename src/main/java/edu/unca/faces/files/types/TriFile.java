@@ -44,7 +44,7 @@ public class TriFile extends ReadableType {
     /** Number of stat morph vertices */
     @Index(10) int K;
     /** Reserved for future use. Set to 0 when saving. */
-    @Index(11) @ArraySize(16) @Reserved char[] reserved;
+    @Index(11) @Reserved(16) char[] reserved;
     /** float, float, float, in order X,Y,Z (coordinate system varies) */
     @Index(12) @BoundSize({"V", "K"}) @ArraySize(3) float[][] vert;
     /** int,int,int, the vertex indices of the tri facets. */

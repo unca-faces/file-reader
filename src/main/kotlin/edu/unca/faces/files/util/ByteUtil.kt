@@ -168,4 +168,13 @@ object ByteUtil {
         val asByte = (0xFF and value.toInt()).toByte()
         buff.put(asByte)
     }
+
+    fun writeNulls(chan: WritableByteChannel, length: Int) {
+        val buff = ByteBuffer.allocate(length)
+        for (i in 0 until length) {
+            buff.put(0x00)
+        }
+        buff.position(0)
+        chan.write(buff)
+    }
 }

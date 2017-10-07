@@ -1,5 +1,8 @@
 package edu.unca.faces.files
 
+import edu.unca.faces.files.annotations.NullTerminated
+import edu.unca.faces.files.annotations.Reserved
+import edu.unca.faces.files.util.ByteUtil
 import edu.unca.faces.files.util.ReflectionUtil
 import edu.unca.faces.files.util.hasDeclaredField
 import edu.unca.faces.files.util.meetsConditions
@@ -33,7 +36,14 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
             println(field)
             field.isAccessible = true
             if (field.meetsConditions(this::getIntegerField)) {
-                if (field.type.isArray) {
+                val reservedAmount = field.getAnnotation(Reserved::class.java)?.value
+                if (reservedAmount != null) {
+                    if (field.type.isArray && field.type.componentType == Char::class.java) {
+                        ByteUtil.writeNulls(output, reservedAmount)
+                    } else {
+                        throw AnnotationFormatError("Reserved annotation can only be use on char[] field")
+                    }
+                } else if (field.type.isArray) {
                     handleArray(field)
                 } else {
                     handleNonArray(field)
@@ -63,6 +73,33 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
     }
 
     private fun handleNonArray(field: Field) {
+        field.isAccessible = true
+        val value = field.get(obj)
 
+        if (value != null) {
+            writeValue(field, field.type, value)
+        }
+    }
+
+    private fun writeValue(field: Field, type: Class<*>, value: Any) {
+        when (type) {
+            Int::class.java -> ByteUtil.writeInt(output, value as Int)
+            Float::class.java -> ByteUtil.writeFloat(output, value as Float)
+            Short::class.java -> ByteUtil.writeShort(output, value as Short)
+            Long::class.java -> ByteUtil.writeLong(output, value as Long)
+            Double::class.java -> ByteUtil.writeDouble(output, value as Double)
+            Char::class.java -> ByteUtil.writeChar(output, value as Char)
+            Byte::class.java -> ByteUtil.writeByte(output, value as Byte)
+            String::class.java -> {
+                if (field.getAnnotation(NullTerminated::class.java) != null) {
+                    ByteUtil.writeNullTerminatedString(output, value as String)
+                } else {
+                    ByteUtil.writeString(output, value as String)
+                }
+            }
+            else -> {
+
+            }
+        }
     }
 }

@@ -5,4 +5,4 @@ package edu.unca.faces.files.annotations
  */
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Reserved
+annotation class Reserved(val value: Int)
