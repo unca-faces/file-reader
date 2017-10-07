@@ -21,11 +21,15 @@ public class SampleFile {
             0x02, 0x00, // shorts x2
             0x02, 0x00, 0x00, 0x00, // X x2
             0x04, 0x00, 0x06, 0x00, // xShorts x2
+            0x00, 0x00, 0x00, 0x00, 0x00, // reserved
             0x41, // passedCondChars
     };
 
+    static char[] reservedExpected = {0x00, 0x00, 0x00, 0x00, 0x00};
+    @Index(8) @Reserved(5) char[] reserved;
+
     static char[] failedCondCharsExpected = null;
-    @Index(8) @BoundSize("V") @Conditions(FailingCondition.class) char[] failedCondChars;
+    @Index(9) @BoundSize("V") @Conditions(FailingCondition.class) char[] failedCondChars;
 
     @ConditionalField("V")
     static class FailingCondition implements Predicate<Integer> {
@@ -36,7 +40,7 @@ public class SampleFile {
     }
 
     static char[] passedCondCharsExpected = {'A'};
-    @Index(9) @BoundSize("K") @Conditions(PassingCondition.class) char[] passedCondChars;
+    @Index(10) @BoundSize("K") @Conditions(PassingCondition.class) char[] passedCondChars;
 
     @ConditionalField("K")
     static class PassingCondition implements Predicate<Integer> {

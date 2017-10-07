@@ -38,9 +38,16 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
         for (field in fields) {
             println(field)
             field.isAccessible = true
-            //if (field.meetsConditions({c, f -> getIntegerField(c, f)})) {
             if (field.meetsConditions(this::getIntegerField)) {
-                if (field.type.isArray) {
+                val reservedAmount = field.getAnnotation(Reserved::class.java)?.value
+                if (reservedAmount != null) {
+                    if (field.type.isArray && field.type.componentType == Char::class.java) {
+                        ByteUtil.readString(input, reservedAmount)
+                        field.set(obj, CharArray(reservedAmount, {'\u0000'}))
+                    } else {
+                        throw AnnotationFormatError("Reserved annotation can only be use on char[] field")
+                    }
+                } else if (field.type.isArray) {
                     handleArray(field)
                 } else {
                     handleNonArray(field)
