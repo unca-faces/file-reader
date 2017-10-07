@@ -1,6 +1,6 @@
 package edu.unca.faces.files
 
-import edu.unca.faces.files.util.StaticByteChannel
+import edu.unca.faces.files.util.TestingByteChannel
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -9,7 +9,7 @@ class ObjectReaderTest {
 
     @Test
     fun testRead() {
-        val obj = ObjectReader(StaticByteChannel(SampleFile.bytes), {SampleFile()}).obj as SampleFile
+        val obj = ObjectReader(TestingByteChannel(SampleFile.bytes), {SampleFile()}).obj as SampleFile
         assertEquals(SampleFile.KExpected, obj.K)
         assertEquals(SampleFile.VExpected, obj.V)
         assertEquals(String(SampleFile.idExpected), String(obj.id))

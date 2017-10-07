@@ -3,6 +3,7 @@ package edu.unca.faces.files.util
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.ReadableByteChannel
+import java.nio.channels.WritableByteChannel
 
 object ByteUtil {
 
@@ -78,5 +79,66 @@ object ByteUtil {
         chan.read(buff)
         buff.position(0)
         return buff
+    }
+
+    @JvmStatic
+    fun writeInt(chan: WritableByteChannel, value: Int) {
+        val buff = ByteBuffer.allocate(4)
+        buff.order(ByteOrder.LITTLE_ENDIAN)
+        buff.putInt(value)
+        buff.flip()
+        chan.write(buff)
+    }
+
+    @JvmStatic
+    fun writeFloat(chan: WritableByteChannel, value: Float) {
+        val buff = ByteBuffer.allocate(4)
+        buff.order(ByteOrder.LITTLE_ENDIAN)
+        buff.putFloat(value)
+        buff.flip()
+        chan.write(buff)
+    }
+
+    @JvmStatic
+    fun writeShort(chan: WritableByteChannel, value: Short) {
+        val buff = ByteBuffer.allocate(2)
+        buff.order(ByteOrder.LITTLE_ENDIAN)
+        buff.putShort(value)
+        buff.flip()
+        chan.write(buff)
+    }
+
+    @JvmStatic
+    fun writeDouble(chan: WritableByteChannel, value: Double) {
+        val buff = ByteBuffer.allocate(8)
+        buff.order(ByteOrder.LITTLE_ENDIAN)
+        buff.putDouble(value)
+        buff.flip()
+        chan.write(buff)
+    }
+
+    @JvmStatic
+    fun writeLong(chan: WritableByteChannel, value: Long) {
+        val buff = ByteBuffer.allocate(8)
+        buff.order(ByteOrder.LITTLE_ENDIAN)
+        buff.putLong(value)
+        buff.flip()
+        chan.write(buff)
+    }
+
+    @JvmStatic
+    fun writeByte(chan: WritableByteChannel, value: Byte) {
+        val buff = ByteBuffer.allocate(1)
+        buff.put(value)
+        chan.write(buff)
+    }
+
+    @JvmStatic
+    fun writeChar(chan: WritableByteChannel, value: Char) {
+        val buff = ByteBuffer.allocate(1)
+        val asByte = (0xFF and value.toInt()).toByte()
+        buff.put(asByte)
+        buff.flip()
+        chan.write(buff)
     }
 }

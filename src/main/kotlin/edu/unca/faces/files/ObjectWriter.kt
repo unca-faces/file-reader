@@ -34,9 +34,9 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
             field.isAccessible = true
             if (field.meetsConditions(this::getIntegerField)) {
                 if (field.type.isArray) {
-                    //handleArray(field)
+                    handleArray(field)
                 } else {
-                    //handleNonArray(field)
+                    handleNonArray(field)
                 }
             }
         }
@@ -56,5 +56,13 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
             nextParent = nextParent.parentReader
         }
         return (intField.get(o) as Number).toInt()
+    }
+
+    private fun handleArray(field: Field) {
+
+    }
+
+    private fun handleNonArray(field: Field) {
+
     }
 }

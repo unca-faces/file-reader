@@ -2,9 +2,9 @@ package edu.unca.faces.files.util
 
 import java.nio.BufferOverflowException
 import java.nio.ByteBuffer
-import java.nio.channels.ReadableByteChannel
+import java.nio.channels.ByteChannel
 
-class StaticByteChannel(val bytes: ByteArray) : ReadableByteChannel {
+class TestingByteChannel(val bytes: ByteArray) : ByteChannel {
 
     var pos = 0;
 
@@ -23,6 +23,19 @@ class StaticByteChannel(val bytes: ByteArray) : ReadableByteChannel {
             pos++
         }
         println()
+        return i
+    }
+
+    override fun write(src: ByteBuffer): Int {
+        var i = 0
+        while (src.hasRemaining()) {
+            if (pos >= bytes.size) throw BufferOverflowException()
+            val byte = src.get()
+            print(String.format("%02X ", byte))
+            bytes[pos] = byte
+            i++
+            pos++
+        }
         return i
     }
 }
