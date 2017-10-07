@@ -72,7 +72,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
         }
         else -> {
             val o = try {
-                type.newInstance()
+                type.getDeclaredConstructor().newInstance()
             } catch (e: Exception) {
                 throw IllegalArgumentException("The type ${type.name} is not supported in field ${field.name}")
             }
