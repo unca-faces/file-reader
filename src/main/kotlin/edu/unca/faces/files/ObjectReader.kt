@@ -54,6 +54,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                 }
             }
         }
+        if (parentReader == null) input.close()
     }
 
 

@@ -50,6 +50,7 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
                 }
             }
         }
+        if (parentWriter == null) output.close()
     }
 
     private fun getIntegerField(name: String, field: Field): Int {
