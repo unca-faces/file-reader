@@ -36,6 +36,7 @@ class TestingByteChannel(val bytes: ByteArray) : ByteChannel {
             i++
             pos++
         }
+        println()
         return i
     }
 }

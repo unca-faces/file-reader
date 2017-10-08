@@ -7,6 +7,22 @@ import java.util.function.Predicate;
 
 public class SampleFile {
 
+    static SampleFile createSampleFileObject() {
+        SampleFile s = new SampleFile();
+        s.id = idExpected;
+        s.V = VExpected;
+        s.K = KExpected;
+        s.children = childrenExpected;
+        s.sArray1 = sArray1Expected;
+        s.sArray2 = sArray2Expected;
+        s.sNullTerm = sNullTermExpected;
+        s.floats2d = floats2dExpected;
+        s.children = childrenExpected;
+        s.reserved = reservedExpected;
+        s.passedCondChars = passedCondCharsExpected;
+        return s;
+    }
+
     static byte[] bytes = {
             0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, // id
             0x03, 0x00, 0x00, 0x00, // V

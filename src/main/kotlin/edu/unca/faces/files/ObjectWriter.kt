@@ -16,7 +16,7 @@ import java.nio.file.StandardOpenOption
 class ObjectWriter internal constructor (private val output: WritableByteChannel,
                                          private val obj: Any,
                                          private val integerFields: MutableMap<String, Field> = mutableMapOf(),
-                                         private val parentReader: ObjectWriter? = null) {
+                                         private val parentWriter: ObjectWriter? = null) {
 
     private constructor(obj: Any, file: File) : this(FileChannel.open(file.toPath(), StandardOpenOption.WRITE), obj)
 
@@ -57,19 +57,49 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
                 + "$name to bind which is required by $field")
         // The int field may belong to a parent object so we must find the parent that has it
         var o: Any = obj
-        var nextParent: ObjectWriter? = parentReader
+        var nextParent: ObjectWriter? = parentWriter
         while (nextParent != null) {
             if (nextParent.obj::class.java.hasDeclaredField(name)) {
                 o = nextParent.obj
                 break
             }
-            nextParent = nextParent.parentReader
+            nextParent = nextParent.parentWriter
         }
         return (intField.get(o) as Number).toInt()
     }
 
     private fun handleArray(field: Field) {
+        val componentType = if (field.type.componentType.isArray) field.type.componentType.componentType else field.type.componentType
+        val twoD = field.type.componentType.isArray
 
+        val value = field.get(obj)
+
+        println("2D? $twoD")
+
+        if (twoD) {
+            val array = value as Array<*>
+            for (e in array) {
+                if (e != null) handle1DArray(field, e, componentType)
+            }
+        } else {
+            handle1DArray(field, value, componentType)
+        }
+    }
+
+    private fun handle1DArray(field: Field, arrayObj: Any, componentType: Class<*>) {
+        val array = when (arrayObj::class.java) {
+            IntArray::class.java -> (arrayObj as IntArray).toTypedArray()
+            FloatArray::class.java -> (arrayObj as FloatArray).toTypedArray()
+            ShortArray::class.java -> (arrayObj as ShortArray).toTypedArray()
+            DoubleArray::class.java -> (arrayObj as DoubleArray).toTypedArray()
+            LongArray::class.java -> (arrayObj as LongArray).toTypedArray()
+            CharArray::class.java -> (arrayObj as CharArray).toTypedArray()
+            ByteArray::class.java -> (arrayObj as ByteArray).toTypedArray()
+            else -> arrayObj as Array<*>
+        }
+        for (e in array) {
+            if (e != null) writeValue(field, componentType, e)
+        }
     }
 
     private fun handleNonArray(field: Field) {
@@ -98,12 +128,12 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
                 }
             }
             else -> {
-                val o = try {
-                    type.getDeclaredConstructor().newInstance()
-                } catch (e: Exception) {
-                    throw IllegalArgumentException("The type ${type.name} is not supported in field ${field.name}")
-                }
-                ObjectWriter(output, { o }, integerFields, this).writeObject()
+//                val o = try {
+//                    type.getDeclaredConstructor().newInstance()
+//                } catch (e: Exception) {
+//                    throw IllegalArgumentException("The type ${type.name} is not supported in field ${field.name}")
+//                }
+                ObjectWriter(output, value, integerFields, this).writeObject()
             }
         }
     }
