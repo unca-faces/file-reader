@@ -1,16 +1,11 @@
 package edu.unca.faces.files.types
 
-import edu.unca.faces.files.ReadableType
-
-enum class KnownType(magicNumber: CharSequence, val objectClass: Class<out ReadableType>) {
+enum class KnownType(magicNumber: CharSequence, val objectClass: Class<*>) {
     TRI("FRTRI003", TriFile::class.java);
 
     val magicNumber: String = magicNumber.toString()
 
-    fun createReadableType(): ReadableType {
-        val constructor = objectClass.getDeclaredConstructor(Array<Char>::class.java)
-        return constructor.newInstance(magicNumber.toCharArray()) as ReadableType
-    }
+    fun createObject(): Any = objectClass.getDeclaredConstructor().newInstance()
 
     companion object {
 

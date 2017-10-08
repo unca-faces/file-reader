@@ -8,17 +8,17 @@ import java.io.IOException
 import java.lang.annotation.AnnotationFormatError
 import java.lang.reflect.Field
 import java.nio.channels.FileChannel
-import java.nio.channels.ReadableByteChannel
+import java.nio.channels.SeekableByteChannel
+import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.util.function.Predicate
 
-class ObjectReader internal constructor (private val input: ReadableByteChannel,
-                                        objectProvider: (ReadableByteChannel) -> Any,
+class ObjectReader internal constructor (private val input: SeekableByteChannel,
+                                        objectProvider: (SeekableByteChannel) -> Any,
                                         private val integerFields: MutableMap<String, Field> = mutableMapOf(),
                                         private val parentReader: ObjectReader? = null) {
 
-    private constructor(file: File) : this(FileChannel.open(file.toPath(), StandardOpenOption.READ),
-            {input -> KnownType.getType(ByteUtil.readString(input, 8))?.createReadableType()
+    private constructor(path: Path) : this(FileChannel.open(path, StandardOpenOption.READ),
+            {input -> KnownType.getType(ByteUtil.readStringAndReset(input, 8))?.createObject()
                     ?: throw IOException("Unknown file format")})
 
     val obj: Any = objectProvider(input)
@@ -61,6 +61,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
 
     private fun handleNonArray(field: Field) {
         field.set(obj, extractValue(field.type, field))
+        println("Value = ${field.get(obj)}")
     }
 
     private fun extractValue(type: Class<*>, field: Field): Any = when (type) {
@@ -142,6 +143,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                             array[i][j] = extractValue(Int::class.java, field) as Int
                         }
                     }
+                    println("Value = ${array.contentDeepToString()}")
                     field.set(obj, array)
                 }
                 Float::class.java -> {
@@ -151,6 +153,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                             array[i][j] = extractValue(Float::class.java, field) as Float
                         }
                     }
+                    println("Value = ${array.contentDeepToString()}")
                     field.set(obj, array)
                 }
                 Short::class.java -> {
@@ -160,6 +163,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                             array[i][j] = extractValue(Short::class.java, field) as Short
                         }
                     }
+                    println("Value = ${array.contentDeepToString()}")
                     field.set(obj, array)
                 }
                 Char::class.java -> {
@@ -169,6 +173,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                             array[i][j] = extractValue(Char::class.java, field) as Char
                         }
                     }
+                    println("Value = ${array.contentDeepToString()}")
                     field.set(obj, array)
                 }
                 else -> {
@@ -178,6 +183,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                             array[i][j] = extractValue(Char::class.java, field)
                         }
                     }
+                    println("Value = ${array.contentDeepToString()}")
                     field.set(obj, array)
                 }
             }
@@ -188,6 +194,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                     for (i in 0 until if (boundSize >= 0) boundSize else arraySize) {
                         array[i] = extractValue(Int::class.java, field) as Int
                     }
+                    println("Value = ${array.contentToString()}")
                     field.set(obj, array)
                 }
                 Float::class.java -> {
@@ -195,6 +202,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                     for (i in 0 until if (boundSize >= 0) boundSize else arraySize) {
                         array[i] = extractValue(Float::class.java, field) as Float
                     }
+                    println("Value = ${array.contentToString()}")
                     field.set(obj, array)
                 }
                 Short::class.java -> {
@@ -202,6 +210,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                     for (i in 0 until if (boundSize >= 0) boundSize else arraySize) {
                         array[i] = extractValue(Short::class.java, field) as Short
                     }
+                    println("Value = ${array.contentToString()}")
                     field.set(obj, array)
                 }
                 Char::class.java -> {
@@ -210,6 +219,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                     for (i in 0 until if (boundSize >= 0) boundSize else arraySize) {
                         array[i] = extractValue(Char::class.java, field) as Char
                     }
+                    println("Value = ${array.contentToString()}")
                     field.set(obj, array)
                 }
                 String::class.java -> {
@@ -217,6 +227,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                     for (i in 0 until if (boundSize >= 0) boundSize else arraySize) {
                         array[i] = extractValue(String::class.java, field) as String
                     }
+                    println("Value = ${array.contentToString()}")
                     field.set(obj, array)
                 }
                 else -> {
@@ -224,7 +235,7 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
                     for (i in 0 until if (boundSize >= 0) boundSize else arraySize) {
                         array[i] = extractValue(arrayType, field)
                     }
-                    println(array)
+                    println("Value = ${array.contentToString()}")
                     field.set(obj, array)
                 }
             }
@@ -233,7 +244,11 @@ class ObjectReader internal constructor (private val input: ReadableByteChannel,
 
     companion object {
         fun readFileToObject(file: File): Any {
-            val reader = ObjectReader(file)
+            val reader = ObjectReader(file.toPath())
+            return reader.obj
+        }
+        fun readFileToObject(path: Path): Any {
+            val reader = ObjectReader(path)
             return reader.obj
         }
     }

@@ -11,6 +11,7 @@ import java.lang.annotation.AnnotationFormatError
 import java.lang.reflect.Field
 import java.nio.channels.FileChannel
 import java.nio.channels.WritableByteChannel
+import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
 class ObjectWriter internal constructor (private val output: WritableByteChannel,
@@ -18,7 +19,7 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
                                          private val integerFields: MutableMap<String, Field> = mutableMapOf(),
                                          private val parentWriter: ObjectWriter? = null) {
 
-    private constructor(obj: Any, file: File) : this(FileChannel.open(file.toPath(), StandardOpenOption.WRITE), obj)
+    private constructor(obj: Any, path: Path) : this(FileChannel.open(path, StandardOpenOption.WRITE), obj)
 
     private val fields: List<Field> = ReflectionUtil.getIndexOrderedFields(obj::class.java)
 
@@ -74,8 +75,6 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
         val twoD = field.type.componentType.isArray
 
         val value = field.get(obj)
-
-        println("2D? $twoD")
 
         if (twoD) {
             val array = value as Array<*>
@@ -136,6 +135,19 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
 //                }
                 ObjectWriter(output, value, integerFields, this).writeObject()
             }
+        }
+    }
+
+    companion object {
+        fun writeObjectToFile(obj: Any, file: File) {
+            val writer = ObjectWriter(obj, file.toPath())
+            writer.writeObject()
+        }
+
+
+        fun writeObjectToFile(obj: Any, path: Path) {
+            val writer = ObjectWriter(obj, path)
+            writer.writeObject()
         }
     }
 }

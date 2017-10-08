@@ -3,6 +3,7 @@ package edu.unca.faces.files.util
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.ReadableByteChannel
+import java.nio.channels.SeekableByteChannel
 import java.nio.channels.WritableByteChannel
 
 object ByteUtil {
@@ -15,6 +16,13 @@ object ByteUtil {
         val buff = ByteBuffer.allocate(length)
         chan.read(buff)
         return readString(buff);
+    }
+
+    fun readStringAndReset(chan: SeekableByteChannel, length: Int): String {
+        val pos = chan.position()
+        val result = readString(chan, length)
+        chan.position(pos)
+        return result
     }
 
     /**

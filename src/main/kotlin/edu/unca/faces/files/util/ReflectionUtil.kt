@@ -8,6 +8,11 @@ import java.lang.annotation.AnnotationFormatError
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.function.Predicate
+import java.util.Arrays
+import java.util.Collections.addAll
+import java.util.ArrayList
+
+
 
 internal fun Field.meetsConditions(intFieldGetter: (String, Field) -> Int): Boolean {
     val conditions = this.getAnnotation(Conditions::class.java)
@@ -46,7 +51,7 @@ internal object ReflectionUtil {
     @JvmStatic
     fun getIndexOrderedFields(clazz: Class<*>): List<Field> {
         val fieldList = mutableListOf<Field>()
-        for (field in clazz.declaredFields) {
+        for (field in getAllFields(clazz)) {
             if (field.modifiers != Modifier.STATIC
                     && field.modifiers != Modifier.TRANSIENT) {
                 if (field.getAnnotation(Index::class.java) == null) {
@@ -67,5 +72,15 @@ internal object ReflectionUtil {
         })
 
         return fieldList
+    }
+
+    fun getAllFields(clazz: Class<*>): List<Field> {
+        val fields = ArrayList<Field>()
+        var c: Class<*>? = clazz
+        while (c != null) {
+            fields.addAll(Arrays.asList(*c.declaredFields))
+            c = c.superclass
+        }
+        return fields
     }
 }

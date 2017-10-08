@@ -1,6 +1,5 @@
 package edu.unca.faces.files.types;
 
-import edu.unca.faces.files.ReadableType;
 import edu.unca.faces.files.annotations.ArraySize;
 import edu.unca.faces.files.annotations.BoundSize;
 import edu.unca.faces.files.annotations.ConditionalField;
@@ -11,12 +10,9 @@ import edu.unca.faces.files.annotations.Reserved;
 
 import java.util.function.Predicate;
 
-public class TriFile extends ReadableType {
+public class TriFile {
 
-    TriFile(char[] magicNumber) {
-        super(magicNumber);
-    }
-
+    @Index(0) @ArraySize(8) private char[] magicNumber;
     /** Number of vertices */
     @Index(1) int V;
     /** Number of triangles */
@@ -51,8 +47,8 @@ public class TriFile extends ReadableType {
     @Index(13) @BoundSize("T") @ArraySize(3) int[][] tri;
     /** int,int,int,int, the vertex indeices of the quad facets. */
     @Index(14) @BoundSize("Q") @ArraySize(4) int[][] quad;
-    @Index(15) @BoundSize("LV") String[] vlabels;
-    @Index(16) @BoundSize("LS") String[] slabels;
+    @Index(15) @BoundSize("LV") VLabel[] vlabels;
+    @Index(16) @BoundSize("LS") SLabel[] slabels;
 
     // ... If per-vertex texture coordinates (ie X == 0 and [<ext> & 0x01] == true): ...
     /** float, float in OpenGL texture coordinate system. */
@@ -75,6 +71,19 @@ public class TriFile extends ReadableType {
 
     // ... And if Ms > 0: ...
     @Index(22) @Conditions(StatMorphsCondition.class) @BoundSize("Ms") StatMorph[] statMorphs;
+
+    public static class VLabel {
+        @Index(0) int index;
+        @Index(1) String label;
+    }
+
+    public static class SLabel {
+        @Index(0) int index;
+        @Index(1) float x;
+        @Index(2) float y;
+        @Index(3) float z;
+        @Index(4) String label;
+    }
 
     public static class DifferenceMorph {
         @Index(0) @NullTerminated String label;
