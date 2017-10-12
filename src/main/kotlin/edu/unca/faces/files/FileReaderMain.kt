@@ -10,11 +10,11 @@ class FileReaderMain {
         fun main(args: Array<String>) {
             if (args.size < 1) {
                 println("Must specify file to read as first param")
-                exitProcess(1)
+                return
             }
             if (args.size < 2) {
                 println("Must specify file to write as second param")
-                exitProcess(2)
+                return
             }
 
             val originalFile = Paths.get(args[0])
@@ -29,7 +29,6 @@ class FileReaderMain {
                 println("Checksums match")
             } else {
                 println("Checksums do not match")
-                exitProcess(3)
             }
         }
     }
