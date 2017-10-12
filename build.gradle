@@ -6,13 +6,17 @@ buildscript {
 
     repositories {
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.1'
     }
 }
 
 apply plugin: 'kotlin'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 repositories {
     mavenCentral()
@@ -34,4 +38,23 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+mainClassName = 'edu.unca.faces.files.FileReaderMain'
+
+jar {
+    manifest {
+        attributes(
+                //s'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'edu.unca.faces.files.FileReaderMain'
+        )
+    }
+}
+
+jar.finalizedBy shadowJar
+
+shadowJar {
+    baseName = 'filereader'
+    classifier = null
+    version = null
 }
