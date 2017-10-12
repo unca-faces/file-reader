@@ -100,11 +100,6 @@ public class TriFile {
         /** int. Number of model vertices affected */
         @Index(1) int L;
         @Index(2) @BoundSize("L") int[] VtxIdxList;
-
-        public static class Delta {
-            @Index(0) float scale;
-            @Index(1) @BoundSize("V") @ArraySize(3) short delta;
-        }
     }
 
     public static @ConditionalField("X") class PerVertexCondition implements Predicate<Integer> {

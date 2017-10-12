@@ -12,8 +12,8 @@ object ByteUtil {
      * Reads a string of a given length.
      */
     @JvmStatic
-    fun readString(chan: ReadableByteChannel, length: Int): String {
-        val buff = ByteBuffer.allocate(length)
+    fun readString(chan: ReadableByteChannel, length: Int, nullTerminated: Boolean = false): String {
+        val buff = ByteBuffer.allocate(if (nullTerminated) length + 1 else length)
         chan.read(buff)
         return readString(buff);
     }
