@@ -2,9 +2,9 @@ package edu.unca.faces.files.util
 
 import java.nio.BufferOverflowException
 import java.nio.ByteBuffer
-import java.nio.channels.ByteChannel
+import java.nio.channels.SeekableByteChannel
 
-class TestingByteChannel(val bytes: ByteArray) : ByteChannel {
+class TestingByteChannel(val bytes: ByteArray) : SeekableByteChannel {
 
     var pos = 0;
 
@@ -38,5 +38,18 @@ class TestingByteChannel(val bytes: ByteArray) : ByteChannel {
         }
         println()
         return i
+    }
+
+    override fun position(): Long = pos.toLong()
+
+    override fun position(newPosition: Long): SeekableByteChannel {
+        pos = newPosition.toInt()
+        return this
+    }
+
+    override fun size(): Long = bytes.size.toLong()
+
+    override fun truncate(size: Long): SeekableByteChannel {
+        throw UnsupportedOperationException()
     }
 }
