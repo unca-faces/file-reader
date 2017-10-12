@@ -1,6 +1,5 @@
 package edu.unca.faces.files.util
 
-import edu.unca.faces.files.ObjectReader
 import edu.unca.faces.files.annotations.ConditionalField
 import edu.unca.faces.files.annotations.Conditions
 import edu.unca.faces.files.annotations.Index
@@ -9,7 +8,6 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.function.Predicate
 import java.util.Arrays
-import java.util.Collections.addAll
 import java.util.ArrayList
 
 

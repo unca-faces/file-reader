@@ -1,12 +1,13 @@
 package edu.unca.faces.files
 
+import edu.unca.faces.files.util.HashUtil.bytesToHexString
+import edu.unca.faces.files.util.HashUtil.getMD5Checksum
 import org.junit.Assert.*
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Files.isRegularFile
-import java.nio.file.Path
 import java.nio.file.Paths
-import java.security.MessageDigest
+
 
 class SampleFileTest {
 
@@ -53,20 +54,6 @@ class SampleFileTest {
 
             })
         }
-    }
-
-    private fun getMD5Checksum(path: Path): String {
-        val md = MessageDigest.getInstance("MD5")
-        md.update(Files.readAllBytes(path))
-        return bytesToHexString(md.digest())
-    }
-
-    private fun bytesToHexString(bytes: ByteArray): String {
-        val b = StringBuilder()
-        for (byte in bytes) {
-            b.append(String.format("%02x ", byte))
-        }
-        return b.toString()
     }
 
     private fun assertByteArraysEqual(b1: ByteArray, b2: ByteArray) {

@@ -19,7 +19,8 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
                                          private val integerFields: MutableMap<String, Field> = mutableMapOf(),
                                          private val parentWriter: ObjectWriter? = null) {
 
-    private constructor(obj: Any, path: Path) : this(FileChannel.open(path, StandardOpenOption.WRITE), obj)
+    private constructor(obj: Any, path: Path)
+            : this(FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE), obj)
 
     private val fields: List<Field> = ReflectionUtil.getIndexOrderedFields(obj::class.java)
 
