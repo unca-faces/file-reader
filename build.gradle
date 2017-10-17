@@ -58,3 +58,9 @@ shadowJar {
     classifier = null
     version = null
 }
+
+run {
+    if ( project.hasProperty("runArgs") ) {
+        args Eval.me(runArgs)
+    }
+}
