@@ -13,7 +13,7 @@ object ByteUtil {
      */
     @JvmStatic
     fun readString(chan: ReadableByteChannel, length: Int, nullTerminated: Boolean = false): String {
-        val buff = ByteBuffer.allocate(if (nullTerminated) length + 1 else length)
+        val buff = ByteBuffer.allocate(length)
         chan.read(buff)
         return readString(buff);
     }
@@ -36,17 +36,20 @@ object ByteUtil {
     }
 
     fun readNullTerminatedString(chan: ReadableByteChannel): String {
+        val length = readInt(chan)
         var buff = ByteBuffer.allocate(1)
         val result = StringBuilder()
 
+        var numRead = 0
         var currentChar: Char = ' '
-        while (currentChar != '\u0000') {
+        while (currentChar != '\u0000' && numRead < length) {
             chan.read(buff)
             currentChar = buff[0].toChar()
             buff = ByteBuffer.allocate(1)
             if (currentChar != '\u0000') {
                 result.append(currentChar)
             }
+            numRead++
         }
 
         return result.toString()
@@ -103,7 +106,9 @@ object ByteUtil {
 
     @JvmStatic
     fun writeNullTerminatedString(chan: WritableByteChannel, value: String) {
-        val buff = ByteBuffer.allocate(value.length + 1)
+        val length = value.length + 1
+        writeInt(chan, length)
+        val buff = ByteBuffer.allocate(length)
         for (c in value.toCharArray()) {
             writeCharToBuffer(buff, c)
         }

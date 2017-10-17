@@ -74,12 +74,7 @@ class ObjectReader internal constructor (private val input: SeekableByteChannel,
         Char::class.java -> ByteUtil.readChar(input)
         String::class.java -> {
             if (field.getAnnotation(NullTerminated::class.java) != null) {
-                val length = field.getAnnotation(ArraySize::class.java)?.value
-                if (length != null) {
-                    ByteUtil.readString(input, length, true)
-                } else {
-                    ByteUtil.readNullTerminatedString(input)
-                }
+                ByteUtil.readNullTerminatedString(input)
             } else {
                 ByteUtil.readString(input)
             }
