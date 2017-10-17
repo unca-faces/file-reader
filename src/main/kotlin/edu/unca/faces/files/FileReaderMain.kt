@@ -20,7 +20,10 @@ class FileReaderMain {
             val originalFile = Paths.get(args[0])
             val rewrittenFile = Paths.get(args[1])
 
-            rewrittenFile.parent.toFile().mkdirs()
+            val parentDir = rewrittenFile.parent
+            if (parentDir != null) {
+                parentDir.toFile().mkdirs()
+            }
 
             val obj = ObjectReader.readFileToObject(originalFile)
             ObjectWriter.writeObjectToFile(obj, rewrittenFile)
