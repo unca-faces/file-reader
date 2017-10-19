@@ -75,8 +75,8 @@ class ByteUtilTest {
 
     @Test
     fun testWriteNullTerminatedString() {
-        val bytes = byteArrayOf(0x41, 0x42, 0x43, 0x44, 0x00)
-        val chan = TestingByteChannel(ByteArray(5))
+        val bytes = byteArrayOf(0x05, 0x00, 0x00, 0x00, 0x41, 0x42, 0x43, 0x44, 0x00)
+        val chan = TestingByteChannel(ByteArray(9))
         ByteUtil.writeNullTerminatedString(chan, "ABCD")
         assertArrayEquals(bytes, chan.bytes)
     }
