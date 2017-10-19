@@ -1,7 +1,9 @@
 package edu.unca.faces.files.types
 
 enum class KnownType(magicNumber: CharSequence, val objectClass: Class<*>) {
-    TRI("FRTRI003", TriFile::class.java);
+    TRI("FRTRI003", TriFile::class.java),
+    EGT("FREGT003", EgtFile::class.java),
+    EGM("FREGM002", EgmFile::class.java);
 
     val magicNumber: String = magicNumber.toString()
 

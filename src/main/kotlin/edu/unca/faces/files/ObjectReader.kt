@@ -107,7 +107,7 @@ class ObjectReader internal constructor (private val input: SeekableByteChannel,
 
     private fun handleArray(field: Field) {
         val arraySizeAnnotation: ArraySize? = field.getAnnotation(ArraySize::class.java)
-        val arraySize = arraySizeAnnotation?.value ?: -1
+        var arraySize = arraySizeAnnotation?.value ?: -1
 
         val boundSizeAnnotation: BoundSize? = field.getAnnotation(BoundSize::class.java)
         val boundSize: Int = if (boundSizeAnnotation != null) {
@@ -118,6 +118,23 @@ class ObjectReader internal constructor (private val input: SeekableByteChannel,
             size
         } else {
             -1
+        }
+
+        // Check if there is a bound size for the 2nd dimension
+        if (arraySize == -1) {
+            val boundSize2DAnnotation: BoundSize2D? = field.getAnnotation(BoundSize2D::class.java)
+            val boundSize2D: Int = if (boundSize2DAnnotation != null) {
+                var size = 0
+                for (boundFieldName in boundSize2DAnnotation.value) {
+                    size += getIntegerField(boundFieldName, field)
+                }
+                size
+            } else {
+                -1
+            }
+            if (boundSize2D != -1) {
+                arraySize = boundSize2D
+            }
         }
 
         // Missing both annotations
