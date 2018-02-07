@@ -1,37 +1,77 @@
 package edu.unca.faces.files
 
+import com.google.gson.GsonBuilder
+import com.xenomachina.argparser.ArgParser
+import com.xenomachina.argparser.default
 import edu.unca.faces.files.util.HashUtil
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.system.exitProcess
 
 class FileReaderMain {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            if (args.size < 1) {
-                println("Must specify file to read as first param")
-                return
-            }
-            if (args.size < 2) {
-                println("Must specify file to write as second param")
-                return
+            val opts = ProgramOptions(ArgParser(args))
+
+            val input = opts.input
+            val output = if (opts.output != null) {
+                opts.output!!
+            } else {
+                if (opts.json) {
+                    Paths.get("$input.json")
+                } else {
+                    Paths.get("${opts.inputName}.rewrite${if (opts.inputExt.isNotEmpty()) ".${opts.inputExt}" else ""}")
+                }
             }
 
-            val originalFile = Paths.get(args[0])
-            val rewrittenFile = Paths.get(args[1])
-
-            val parentDir = rewrittenFile.parent
+            val parentDir = output.parent
             if (parentDir != null) {
                 parentDir.toFile().mkdirs()
             }
 
-            val obj = ObjectReader.readFileToObject(originalFile)
-            ObjectWriter.writeObjectToFile(obj, rewrittenFile)
+            val obj = ObjectReader.readFileToObject(opts.input)
 
-            if (HashUtil.checksumMatches(originalFile, rewrittenFile)) {
-                println("Checksums match")
+            if (opts.json) {
+                val gson = GsonBuilder()
+                if (opts.prettyPrint) gson.setPrettyPrinting()
+
+                Files.write(output, listOf(gson.create().toJson(obj)))
+                println("Object file converted to JSON")
             } else {
-                println("Checksums do not match")
+                BinaryObjectWriter.writeObjectToFile(obj, output)
+                if (HashUtil.checksumMatches(input, output)) {
+                    println("Checksums match")
+                } else {
+                    println("Checksums do not match")
+                }
+            }
+        }
+    }
+
+    class ProgramOptions(parser: ArgParser) {
+        val input by parser.positional("INPUT", help = "name of input file") { Paths.get(this) }
+        val output by parser.storing("-o", "--output", help = "name of the output file") { Paths.get(this) }.default({ null })
+        val json by parser.flagging("-j", "--json", help = "produces a json output file")
+        val prettyPrint by parser.flagging("-p", "--pretty-print", help = "pretty print json")
+
+        val inputName by lazy {
+            val path = input.toString()
+            val dotIndex = path.lastIndexOf(".")
+            if (dotIndex != -1) {
+                path.substring(0, dotIndex)
+            } else {
+                path
+            }
+        }
+
+        val inputExt by lazy {
+            val path = input.toString()
+            val dotIndex = path.lastIndexOf(".")
+            if (dotIndex != -1 && dotIndex < path.length - 1) {
+                path.substring(dotIndex + 1, path.length)
+            } else {
+                ""
             }
         }
     }

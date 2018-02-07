@@ -14,7 +14,7 @@ import java.nio.channels.WritableByteChannel
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
-class ObjectWriter internal constructor (private val output: WritableByteChannel,
+abstract class ObjectWriter internal constructor (private val output: WritableByteChannel,
                                          private val obj: Any,
                                          private val integerFields: MutableMap<String, Field> = mutableMapOf(),
                                          private val parentWriter: ObjectWriter? = null) {
@@ -33,6 +33,10 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
         }
     }
 
+    abstract fun newWriter(output: WritableByteChannel, obj: Any,
+                           integerFields: MutableMap<String, Field> = mutableMapOf(),
+                           parentWriter: ObjectWriter? = null): ObjectWriter
+
     fun writeObject() {
         for (field in fields) {
             println(field)
@@ -41,7 +45,7 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
                 val reservedAmount = field.getAnnotation(Reserved::class.java)?.value
                 if (reservedAmount != null) {
                     if (field.type.isArray && field.type.componentType == Char::class.java) {
-                        ByteUtil.writeNulls(output, reservedAmount)
+                        writeReserved(field, reservedAmount)
                     } else {
                         throw AnnotationFormatError("Reserved annotation can only be use on char[] field")
                     }
@@ -53,6 +57,10 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
             }
         }
         if (parentWriter == null) output.close()
+    }
+
+    fun writeReserved(field: Field, reservedAmount: Int) {
+        ByteUtil.writeNulls(output, reservedAmount)
     }
 
     private fun getIntegerField(name: String, field: Field): Int {
@@ -114,7 +122,7 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
 
     private fun writeValue(field: Field, type: Class<*>, value: Any) {
         when (type) {
-            Int::class.java -> ByteUtil.writeInt(output, value as Int)
+            Int::class.java -> writeInt(field, value as Int)
             Float::class.java -> ByteUtil.writeFloat(output, value as Float)
             Short::class.java -> ByteUtil.writeShort(output, value as Short)
             Long::class.java -> ByteUtil.writeLong(output, value as Long)
@@ -123,7 +131,7 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
             Byte::class.java -> ByteUtil.writeByte(output, value as Byte)
             String::class.java -> {
                 if (field.getAnnotation(NullTerminated::class.java) != null) {
-                    ByteUtil.writeNullTerminatedString(output, value as String)
+                    writeNullTerminatedString(field, value as String)
                 } else {
                     ByteUtil.writeString(output, value as String)
                 }
@@ -134,21 +142,40 @@ class ObjectWriter internal constructor (private val output: WritableByteChannel
 //                } catch (e: Exception) {
 //                    throw IllegalArgumentException("The type ${type.name} is not supported in field ${field.name}")
 //                }
-                ObjectWriter(output, value, integerFields, this).writeObject()
+                newWriter(output, value, integerFields, this).writeObject()
             }
         }
     }
 
-    companion object {
-        fun writeObjectToFile(obj: Any, file: File) {
-            val writer = ObjectWriter(obj, file.toPath())
-            writer.writeObject()
-        }
-
-
-        fun writeObjectToFile(obj: Any, path: Path) {
-            val writer = ObjectWriter(obj, path)
-            writer.writeObject()
+    internal inline fun <reified T> writePrimitive(field: Field, value: T) {
+        when (T::class.java) {
+            Float::class.java -> ByteUtil.writeFloat(output, value as Float)
+            Short::class.java -> ByteUtil.writeShort(output, value as Short)
+            Long::class.java -> ByteUtil.writeLong(output, value as Long)
+            Double::class.java -> ByteUtil.writeDouble(output, value as Double)
+            Char::class.java -> ByteUtil.writeChar(output, value as Char)
+            Byte::class.java -> ByteUtil.writeByte(output, value as Byte)
+            else -> throw IllegalArgumentException("$field is primitive but not parseable.")
         }
     }
+
+    abstract fun writeInt(field: Field, value: Int)
+
+    abstract fun writeFloat(field: Field, value: Float)
+
+    abstract fun writeShort(field: Field, value: Short)
+
+    abstract fun writeLong(field: Field, value: Long)
+
+    abstract fun writeDouble(field: Field, value: Double)
+
+    abstract fun writeChar(field: Field, value: Char)
+
+    abstract fun writeByte(field: Field, value: Byte)
+
+    fun writeNullTerminatedString(field: Field, value: String) {
+        ByteUtil.writeNullTerminatedString(output, value)
+    }
+
+
 }

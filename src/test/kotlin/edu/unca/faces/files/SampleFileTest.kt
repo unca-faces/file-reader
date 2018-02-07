@@ -20,7 +20,7 @@ class SampleFileTest {
         val originalBytes = Files.readAllBytes(path)
 
         val tempFile = Files.createTempFile("rewritten", path.toFile().name)
-        ObjectWriter.writeObjectToFile(obj, tempFile)
+        BinaryObjectWriter.writeObjectToFile(obj, tempFile)
         val newChecksum = getMD5Checksum(tempFile)
         val newBytes = Files.readAllBytes(tempFile)
 
@@ -40,7 +40,7 @@ class SampleFileTest {
                     val originalBytes = Files.readAllBytes(it)
 
                     val tempFile = Files.createTempFile("rewritten", it.toFile().name)
-                    ObjectWriter.writeObjectToFile(obj, tempFile)
+                    BinaryObjectWriter.writeObjectToFile(obj, tempFile)
                     val newChecksum = getMD5Checksum(tempFile)
                     val newBytes = Files.readAllBytes(tempFile)
 
