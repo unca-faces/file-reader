@@ -3,6 +3,7 @@ package edu.unca.faces.files
 import com.google.gson.GsonBuilder
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
+import com.xenomachina.argparser.mainBody
 import edu.unca.faces.files.util.HashUtil
 import java.nio.file.Files
 import java.nio.file.Path
@@ -11,7 +12,7 @@ import java.nio.file.Paths
 class FileReaderMain {
     companion object {
         @JvmStatic
-        fun main(args: Array<String>) {
+        fun main(args: Array<String>) = mainBody {
             val opts = ProgramOptions(ArgParser(args))
 
             val input = opts.input
@@ -30,7 +31,7 @@ class FileReaderMain {
                 parentDir.toFile().mkdirs()
             }
 
-            val obj = ObjectReader.readFileToObject(opts.input)
+            val obj = ObjectReader.readFileToObject(opts.input, opts.enableDebug)
 
             if (opts.json) {
                 val gson = GsonBuilder()
@@ -52,8 +53,9 @@ class FileReaderMain {
     class ProgramOptions(parser: ArgParser) {
         val input by parser.positional("INPUT", help = "name of input file") { Paths.get(this) }
         val output by parser.storing("-o", "--output", help = "name of the output file") { Paths.get(this) }.default({ null })
-        val json by parser.flagging("-j", "--json", help = "produces a json output file")
+        val json by parser.flagging("-j", "--json", help = "produce a json output file")
         val prettyPrint by parser.flagging("-p", "--pretty-print", help = "pretty print json")
+        val enableDebug by parser.flagging("-d", "--enable-debug", help = "enable debug output")
 
         val inputName by lazy {
             val path = input.toString()

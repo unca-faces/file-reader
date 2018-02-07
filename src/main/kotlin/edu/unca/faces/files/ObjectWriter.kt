@@ -15,12 +15,13 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
 abstract class ObjectWriter internal constructor (private val output: WritableByteChannel,
-                                         private val obj: Any,
-                                         private val integerFields: MutableMap<String, Field> = mutableMapOf(),
-                                         private val parentWriter: ObjectWriter? = null) {
+                                                  private val obj: Any,
+                                                  private val integerFields: MutableMap<String, Field> = mutableMapOf(),
+                                                  private val parentWriter: ObjectWriter? = null,
+                                                  private val enableDebug: Boolean = false) {
 
-    private constructor(obj: Any, path: Path)
-            : this(FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE), obj)
+    private constructor(obj: Any, path: Path, enableDebug: Boolean = false)
+            : this(FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE), obj, enableDebug = enableDebug)
 
     private val fields: List<Field> = ReflectionUtil.getIndexOrderedFields(obj::class.java)
 
@@ -33,13 +34,18 @@ abstract class ObjectWriter internal constructor (private val output: WritableBy
         }
     }
 
+    protected fun debug(messageCall: () -> Any) {
+        if (enableDebug) println(messageCall())
+    }
+
     abstract fun newWriter(output: WritableByteChannel, obj: Any,
                            integerFields: MutableMap<String, Field> = mutableMapOf(),
-                           parentWriter: ObjectWriter? = null): ObjectWriter
+                           parentWriter: ObjectWriter? = null,
+                           enableDebug: Boolean = false): ObjectWriter
 
     fun writeObject() {
         for (field in fields) {
-            println(field)
+            debug { field }
             field.isAccessible = true
             if (field.meetsConditions(this::getIntegerField)) {
                 val reservedAmount = field.getAnnotation(Reserved::class.java)?.value

@@ -11,15 +11,16 @@ import java.nio.file.StandardOpenOption
 class BinaryObjectWriter internal constructor (private val output: WritableByteChannel,
                                                private val obj: Any,
                                                private val integerFields: MutableMap<String, Field> = mutableMapOf(),
-                                               private val parentWriter: ObjectWriter? = null)
-    : ObjectWriter(output, obj, integerFields, parentWriter) {
+                                               private val parentWriter: ObjectWriter? = null,
+                                               enableDebug: Boolean = false)
+    : ObjectWriter(output, obj, integerFields, parentWriter, enableDebug) {
 
-    override fun newWriter(output: WritableByteChannel, obj: Any, integerFields: MutableMap<String, Field>, parentWriter: ObjectWriter?): ObjectWriter {
-        return BinaryObjectWriter(output, obj, integerFields, parentWriter)
+    override fun newWriter(output: WritableByteChannel, obj: Any, integerFields: MutableMap<String, Field>, parentWriter: ObjectWriter?, enableDebug: Boolean): ObjectWriter {
+        return BinaryObjectWriter(output, obj, integerFields, parentWriter, enableDebug)
     }
 
-    private constructor(obj: Any, path: Path)
-            : this(FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE), obj)
+    private constructor(obj: Any, path: Path, enableDebug: Boolean = false)
+            : this(FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE), obj, enableDebug = enableDebug)
 
     override fun writeInt(field: Field, value: Int) {
         ByteUtil.writeInt(output, value)
@@ -56,8 +57,8 @@ class BinaryObjectWriter internal constructor (private val output: WritableByteC
         }
 
 
-        fun writeObjectToFile(obj: Any, path: Path) {
-            val writer = BinaryObjectWriter(obj, path)
+        fun writeObjectToFile(obj: Any, path: Path, enableDebug: Boolean = false) {
+            val writer = BinaryObjectWriter(obj, path, enableDebug = enableDebug)
             writer.writeObject()
         }
     }
